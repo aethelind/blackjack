@@ -1,3 +1,5 @@
+// make win() and lose() functions to avoid repeating code, so it updates innerhtml and win/loss count html
+// probably should not have it shuffled bc the game can be cheesed, but should instead have a function to replace pop() that grabs a random card and removes it.
 // Deck of cards info:
 var deck = [];
 var suits = ["♠️", "♥︎", "♣︎", "♦︎"];
@@ -6,10 +8,9 @@ var names = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 var values = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10];
 
 
-var hand = [];
+var playerHand = [];
+var dealerHand = [];
 
-// true when theres NOT a "no more cards" message printed
-var flag = true;
 var sum = 0;
 var gameover = false;
 
@@ -17,25 +18,46 @@ var gameover = false;
 var soft = true;
 
 var wins = 0;
-var loses = 0;
+var losses = 0;
 
 function start() {
     var newButton = document.getElementById("new");
     newButton.addEventListener("click", hit, false);
 
-    //var shuffButton = document.getElementById("shuff");
-    //shuffButton.addEventListener("click", shuffle, false);
-
-    //var clrButton = document.getElementById("clr");
-    //clrButton.addEventListener("click", clear, false);
+    var standButton = document.getElementById("stand");
+    standButton.addEventListener("click", stand, false);
 
     setDeck();
     hit();
 }
 
+function stand() {
+    var dealerCardDiv = document.getElementById("dealerCard");
+    dealerCardDiv.innerHTML = "";
+    var dealerOutcomeDiv = document.getElementById("dealerOutcome");
+    dealerOutcomeDiv.innerHTML = "";
+
+    // store it in the hand
+    dealerHand.push(deck.pop());
+    dealerHand.push(deck.pop());
+
+    dealerCardDiv.innerHTML += "<div style='color:" + dealerHand[0].colour + ";'>" + dealerHand[0].name + " " + dealerHand[0].suit + "</div><div>🃏</div>";
+
+
+
+}
+
+
 function clear() {
-    var cardDiv = document.getElementById("card");
-    cardDiv.innerHTML = "";
+    var playerCardDiv = document.getElementById("playerCard");
+    playerCardDiv.innerHTML = "";
+    var playerOutcomeDiv = document.getElementById("playerOutcome");
+    playerOutcomeDiv.innerHTML = "";
+
+    var winDiv = document.getElementById("win");
+    winDiv.innerHTML = "👍 " + wins;
+    var loseDiv = document.getElementById("lose");
+    loseDiv.innerHTML = "👎 " + losses;
 
     setDeck();
     flag = true;
@@ -45,21 +67,11 @@ function clear() {
     sumDiv.innerHTML = "Total: " + sum;
     var addDiv = document.getElementById("addition")
     addDiv.innerHTML = "( )";
-    hand = []
+    playerHand = []
     soft = true;
 }
 
 function hit() {
-    // check that deck isn't empty.
-    if (deck.length == 0) {
-        if (flag) {
-            var cardDiv = document.getElementById("card");
-            cardDiv.innerHTML += "<h3>No more cards!</h3>";
-            flag = false;
-        }
-
-        return;
-    }
     if (gameover) {
         clear();
         gameover = false;
@@ -69,55 +81,97 @@ function hit() {
     var card = deck.pop();
 
     // store it in the hand
-    hand.push(card);
+    playerHand.push(card);
+
+    getOutcome(card);
 
     // display card on table
-    var cardDiv = document.getElementById("card");
-    cardDiv.innerHTML += "<div style='color:" + card.colour + ";'>" + card.name + " " + card.suit + "</div>";
+    var playerCardDiv = document.getElementById("playerCard");
+    playerCardDiv.innerHTML += "<div style='color:" + card.colour + ";'>" + card.name + " " + card.suit + "</div>";
 
-    if (sum + card.value == 21) {
-        cardDiv.innerHTML += "<div style='color:#3B945E;'> Winner! </div>";
-        wins++;
-        gameover = true;
-    } else if (sum + card.value > 21) {
-        // !! i think this isn't logically correct, but for now the situation it fails in is unlikely??
-        var aces = false;
-        // check the hand for aces, if it does then change the aces value to 1.
-        soft = false
-        for (var i = 0; i < hand.length; i++) {
-            if (hand[i].value == 11) {
-                hand[i].value = 1;
-                soft = true;
-            }
-        }
-
-        // if there were no aces to change, then they lose.
-        if (!soft) {
-            cardDiv.innerHTML += "<div style='color:#777;'> You Lose! </div>";
-            loses++;
-            gameover = true;
-        }
-
-
-
-    }
-
-    // increase hand's sum
-    sum += card.value;
+    // recalculate sum
+    sum = handSum();
     var sumDiv = document.getElementById("sum")
     sumDiv.innerHTML = "Total: " + sum;
 
-    // show hand calculation
+    // show hand summation
     var addDiv = document.getElementById("addition")
     addDiv.innerHTML = "(";
-    for (var i = 0; i < hand.length; i++) {
-        addDiv.innerHTML += hand[i].value;
-        if (i != hand.length - 1) {
-            addDiv.innerHTML += ", "
+    for (var i = 0; i < playerHand.length; i++) {
+        addDiv.innerHTML += playerHand[i].value;
+        if (i != playerHand.length - 1) {
+            addDiv.innerHTML += " + "
         }
     }
     addDiv.innerHTML += ")";
+
 }
+// goes through the hand, changes Aces one by one and changes their value from 11 to 1.
+function fixHand() {
+    var soft = false;
+    var i = 0;
+
+    while (i < playerHand.length && !soft) {
+        if (playerHand[i].value == 11) {
+            playerHand[i].value = 1;
+            soft = true;
+        }
+        i++;
+    }
+
+    // returns true if somethings been changed.
+    return soft;
+}
+
+// looks at a hand with a new card and checks whether it can be valid
+function getOutcome(card) {
+    var playerOutcomeDiv = document.getElementById("playerOutcome");
+
+    // If its a blackjack, ...
+    if (sum + card.value == 21) {
+        playerOutcomeDiv.innerHTML += "<div style='color:#3B945E;'> BlackJack! </div>";
+        wins++;
+        gameover = true;
+    } else if (sum + card.value > 21) {
+        // If its more than 21, lets check it out.
+        var fixed = false;
+        // see if we can change an Ace. 
+        while (fixHand() && !fixed) {
+            //if we can, we re-check the sum to see if its acceptable
+            var tmp = handSum();
+            if (tmp <= 21) {
+                sum = tmp;
+                fixed = true;
+            }
+            // if it isnt, we check the remaining cards in the hand for other aces
+        }
+        if (fixed) {
+            // the sum is equal to 21
+            if (sum == 21) {
+                playerOutcomeDiv.innerHTML += "<div style='color:#3B945E;'> BlackJack! </div>";
+                wins++;
+                gameover = true;
+            } // otherwise, its lower and so we do nothing. the game continues.
+
+        } else {
+            // the sum is higher than 21
+            playerOutcomeDiv.innerHTML += "<div style='color:#777;'> Bust! </div>";
+            losses++;
+            gameover = true;
+        }
+    }
+
+
+}
+
+function handSum() {
+    var s = 0;
+    for (var i = 0; i < playerHand.length; i++) {
+        s += playerHand[i].value
+    }
+    return s;
+}
+
 
 function setDeck() {
     // sets up all cards in deck.

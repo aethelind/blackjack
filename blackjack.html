@@ -1,33 +1,51 @@
 <!DOCTYPE html>
-
 <html>
 
 <head>
     <meta charset="utf-8">
-    <title>Blackjack!</title>
+    <title>BlackJack!</title>
     <script src="blackjack.js"></script>
     <link rel=StyleSheet href="blackjack.css">
 
 </head>
 
 <body>
-    <h1 style="text-align: center">♠︎ ♥︎ ♣︎ ♦︎<br> Blackjack! </h1>
-    <div style="text-align: center">
-        <input id="new" type="button" value="Hit" class="button">
-        <!--<input id="shuff" type="button" value="Shuffle Deck" class="button">-->
-        <!--<input id="clr" type="button" value="Clear Board" class="button">-->
+    <h1 style="text-align: center">♠︎&nbsp;<span style="color: #E85A4F;">&nbsp;♥︎&nbsp;</span>&nbsp;♣︎&nbsp;<span style="color: #E85A4F;">&nbsp;♦︎</span><br> BlackJack! </h1>
+
+
+    <div class="row">
+        <div class="column">
+            <h2 id="sum"></h2>
+            <h3 id="addition"></h3>
+            <h3>
+                <span id="win" style='color:#3B945E;'>👍 0</span>
+                <span id="lose" style='color:#E85A4F'>👎 0</span>
+            </h3>
+        </div>
+        <div class="column">
+            <input id="new" type="button" value="HIT" class="button">
+            <input id="stand" type="button" value="STAND" class="button">
+        </div>
     </div>
 
-    <h2 id="sum"></h2>
-    <h3 id="addition"></h3>
-    <h2>Your hand: </h2>
+    <div class="row">
+        <div class="column">
 
-    <h2 id="card">
-    </h2>
+            <h2>Your Hand: </h2>
+
+            <h2 id="playerCard"></h2>
+            <h2 id="playerOutcome"></h2>
+        </div>
+        <div class="column">
 
 
+            <h2>Dealer's Hand: </h2>
+            <h2 id="dealerCard"></h2>
+            <h2 id="dealerOutcome"></h2>
+        </div>
+    </div>
 
-
+    <div id="links" class="footer"><a href="https://en.wikipedia.org/wiki/Blackjack">rules</a><a href="/">stats</a><a href="http://aethelind.tk/">about</a></div>
 </body>
 
 </html>
