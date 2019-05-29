@@ -1,6 +1,7 @@
 // make win() and lose() functions to avoid repeating code, so it updates innerhtml and win/loss count html
 // probably should not have it shuffled bc the game can be cheesed, but should instead have a function to replace pop() that grabs a random card and removes it.
 // Deck of cards info:
+//
 var deck = [];
 var suits = ["♠️", "♥︎", "♣︎", "♦︎"];
 var colours = ["#444", "#E85A4F"];
